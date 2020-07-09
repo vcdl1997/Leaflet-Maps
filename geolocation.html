@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="initial-scale-1, maximum-scale-1, user-scalable-no"/>	
+	<title>LeafletJS</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+	<script src="https://unpkg.com/esri-leaflet@2.0.8"></script>
+	<link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@2.2.4/dist/esri-leaflet-geocoder.css" />
+	<script src="https://unpkg.com/esri-leaflet-geocoder@2.2.4"></script>
+	<style>
+		body{ margin: 0; }
+		#map{ position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+	</style>
+</head>
+<body>
+	<div id="map"></div>
+	<script type="text/javascript">
+		let latitude = "", longitude = "";
+
+		//verifica se o objeto navigator está disponível no navegador do usuário
+		if('geolocation' in navigator){
+			navigator.geolocation.getCurrentPosition((position)=>{
+				console.log(`Latitude: ${position.coords.latitude}, Longitute: ${position.coords.longitude}`);
+				
+				latitude = position.coords.latitude;
+				longitude = position.coords.longitude;
+
+				//L.map classe central da API - é usada para criar um mapa em uma página e manipulá-lo
+				let mapa = L.map('map')
+							.setView([latitude, longitude], 8); //setView define aonde o mapa será iniciado
+
+				//insere um marcador com base na localização informada
+				let marcador = L.marker([latitude, longitude]).addTo(mapa);
+
+				//Adiciona um pequeno popup com ao marcador
+				marcador.bindPopup("<b>Sua localização Atual</b>").openPopup();
+
+				//Usado para carregar e exibir camadas de mosaico no mapa.
+				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+					attribution: '&copy; <a href= "https://osm.org/copyright">OpenStreetMap</a> contributors',
+				}).addTo(mapa);
+
+				//Insere um motor de buscas com preenchimento automático.
+				let searchControl = L.esri.Geocoding.geosearch().addTo(mapa);
+
+				searchControl.on('results', function(data){
+					//Marcadores de localização
+					let iconeEscola = L.icon({
+						iconUrl: 'https://cdn.onlinewebfonts.com/svg/img_166278.png',
+						iconSize: [30,30],
+					});
+
+					let busca = L.marker([data.latlng.lat, data.latlng.lng], {icon: iconeEscola}).addTo(mapa);
+					busca.bindPopup(data.text).openPopup();
+				});
+
+				var input = document.querySelector(".geocoder-control-input");
+
+				input.addEventListener("keyup", function(event) {
+				    event.preventDefault();
+				    if (event.keyCode != 13) {
+				        marcador = L.marker([latitude, longitude]).addTo(mapa);
+				    }
+				});
+
+			}, (error)=>{
+				console.log(error);
+			});
+
+		}else{
+
+			alert("Não foi possível capturar a sua localização");
+
+		}
+		
+	</script>
+
+</body>
+</html>
