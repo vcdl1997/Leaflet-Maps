@@ -4,85 +4,177 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="initial-scale-1, maximum-scale-1, user-scalable-no"/>	
 	<title>LeafletJS</title>
+
+	<!-- CSS e JS - Leaflet -->
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
 	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
-	<script src="https://unpkg.com/esri-leaflet@2.0.8"></script>
+
+	<!-- CSS e JS - Motor de Buscas do Leaflet -->
 	<link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@2.2.4/dist/esri-leaflet-geocoder.css" />
+	<script src="https://unpkg.com/esri-leaflet@2.0.8"></script>
 	<script src="https://unpkg.com/esri-leaflet-geocoder@2.2.4"></script>
+
+	<!-- CSS e JS - Leaflet Routing Machine-->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+	<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+	<!-- Icones Personalizados - Leaflet Routing Machine-->
+	<script src="https://cdn.jsdelivr.net/npm/leaflet.icon.glyph@0.3.0/Leaflet.Icon.Glyph.min.js"></script>
 	<style>
 		body{ margin: 0; }
-		#map{ position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+		#map{ 
+			position: absolute; 
+			top: 0; 
+			bottom: 0; 
+			left: 0; 
+			right: 0; 
+		}
 	</style>
 </head>
 <body>
 	<div id="map"></div>
 	<script type="text/javascript">
-		let latitude = "", longitude = "";
+
+		var latitude = "", /* Armazena a latitude atual do usuário */
+			longitude = "", /* Armazena a longitude atual do usuário */
+			data = "", 
+			coordenadas = [], /* Armazena as latitudes e longitudes para desenhar o poligono */
+			route = "", /* Armazena o objeto do Routing Machine */
+			pontosDePassagem = []; /* Armazena os pontos de passagem para o calculo da rota */
+
 
 		//verifica se o objeto navigator está disponível no navegador do usuário
 		if('geolocation' in navigator){
 			navigator.geolocation.getCurrentPosition((position)=>{
-				console.log(`Latitude: ${position.coords.latitude}, Longitute: ${position.coords.longitude}`);
-				
+
+
+				//Latitude e Longitude Atual com base na geolocalização do Usuário
 				latitude = position.coords.latitude;
 				longitude = position.coords.longitude;
+
 
 				//L.map classe central da API - é usada para criar um mapa em uma página e manipulá-lo
 				let mapa = L.map('map')
 							.setView([latitude, longitude], 8); //setView define aonde o mapa será iniciado
-
-				//insere um marcador com base na localização informada
-				let marcador = L.marker([latitude, longitude]).addTo(mapa);
-
-				//Adiciona um pequeno popup com ao marcador
-				marcador.bindPopup("<b>Sua localização Atual</b>").openPopup();
 
 				//Usado para carregar e exibir camadas de mosaico no mapa.
 				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 					attribution: '&copy; <a href= "https://osm.org/copyright">OpenStreetMap</a> contributors',
 				}).addTo(mapa);
 
-				//Insere um motor de buscas com preenchimento automático.
-				let searchControl = L.esri.Geocoding.geosearch().addTo(mapa);
 
-				searchControl.on('results', function(data){
-					//Marcadores de localização
+				//Insere o motor de buscas do Leaflet
+				//let searchControl = L.esri.Geocoding.geosearch().addTo(mapa);
+
+				//Manipula o resultado das Buscas
+				//searchControl.on('results', function(data){
+					/*Marcadores de localização
 					let iconeEscola = L.icon({
 						iconUrl: 'https://cdn.onlinewebfonts.com/svg/img_166278.png',
 						iconSize: [30,30],
 					});
 
-					let busca = L.marker([data.latlng.lat, data.latlng.lng], {icon: iconeEscola}).addTo(mapa);
+					let latBusca = data.latlng.lat,
+						lngBusca = data.latlng.lng,
+						busca = L.marker([latBusca, lngBusca], {icon: iconeEscola}).addTo(mapa);
+					
 					busca.bindPopup(data.text).openPopup();
-				});
+				});*/
 
-				var input = document.querySelector(".geocoder-control-input");
 
-				input.addEventListener("keyup", function(event) {
-				    event.preventDefault();
-				    if (event.keyCode != 13) {
-				        marcador = L.marker([latitude, longitude]).addTo(mapa);
-				    }
-				});
+				data = [
+					{codigo_cie: "900977", cor: "#FF0000", escola: "EE ARY FONSECA", execucao: "0", latitude: "-21.714313125233", longitude: "-50.7242504629517", pi: "2006/01821", situacao: "Cancelado"},
+					{codigo_cie: "901659", cor: "#FF0000", escola: "EE PROFA MASSAKO OSAWA HIRABAYASHI", execucao: "100", latitude: "-24.5037994384766", longitude: "-47.8619995117188", pi: "1998/01152", situacao: ""},
+					{codigo_cie: "902135", cor: "#FF0000", escola: "EE CDOR BENEVIDES BERALDO", execucao: "100", latitude: "-23.7238998413086", longitude: "-46.859001159668", pi: "1999/00375", situacao: ""},
+					{codigo_cie: "291948", cor: "#FF0000", escola: "EMEF CEL JOSE VENANCIO DIAS", execucao: "100", latitude: "-20.7141502807008", longitude: "-48.5386872694244", pi: "2000/00519", situacao: ""},
+					{codigo_cie: "16901; 458697", cor: "#FF0000", escola: "EE/CEL PROFA MARIA ANGELICA BAILLOT", execucao: "100", latitude: "-23.5090007781982", longitude: "-47.6077995300293", pi: "2000/04220", situacao: ""},
+					{codigo_cie: "23589", cor: "#FF0000", escola: "EE PROF SALVADOR GOGLIANO JUNIOR", execucao: "100", latitude: "-21.1760292053223", longitude: "-48.6303100585938", pi: "2001/00927", situacao: ""},
+					{codigo_cie: "34587", cor: "#FF0000", escola: "EE JOAQUIM ABARCA", execucao: "100", latitude: "-21.9256591796875", longitude: "-50.5229301452637", pi: "2000/02979", situacao: ""},
+					{codigo_cie: "30831; 209120", cor: "#FF0000", escola: "EE/EMEFEI PROFA TAIEKA TAKAHASHI GIMENES/TEREZINHA ZANELLI", execucao: "100", latitude: "-21.853", longitude: "-51.0893", pi: "2001/00871", situacao: ""},
+					{codigo_cie: "16559; 458284", cor: "#FF0000", escola: "EE/CEL LUIZ CAMPACCI", execucao: "100", latitude: "-23.0557098388672", longitude: "-47.8367881774902", pi: "2000/03888", situacao: ""}
+				];
+
+
+				if(data.length > 0){
+					data.forEach(({cor, longitude, latitude, execucao, pi, situacao, codigo_cie, escola})=>{
+
+						//Cria um icone personalizado para o marcador
+						let iconeEscola = L.icon({
+							iconUrl: 'https://cdn.onlinewebfonts.com/svg/img_166278.png',
+							iconSize: [30,30],
+						});
+
+						//Insere um marcador com base na Latitude e Longitude
+						let marcador = L.marker([latitude, longitude], {icon: iconeEscola}).addTo(mapa);
+						
+						marcador.bindPopup(`
+							<div class="ml-1 text-justify">
+								<strong>Execução:  </strong> ${execucao} %
+								<br><strong>PI: </strong> ${pi}
+								<br><strong>Situação Obra(PI): </strong> ${situacao}
+								<br><strong>Código CIE: </strong> ${codigo_cie}
+								<br><strong>Escola: </strong> ${escola}
+							</div>
+						`);
+
+						//Seto duas propriedade: (Latitude e Longitude) no elemento "Marcador"
+						marcador._icon.setAttribute('latitude', latitude);
+						marcador._icon.setAttribute('longitude', longitude);
+
+						//Evento de Clique no Marcador
+						marcador.addEventListener('click', ()=> {
+
+							//Insere a latitude e logitude da escola informada em um array de um pontos de passagem
+							pontosDePassagem.push(
+								L.latLng(marcador._icon.getAttribute('latitude'), marcador._icon.getAttribute('longitude'))
+							);
+
+							//Insere apenas uma rota se houver mais de um ponto de passagem
+							if(pontosDePassagem.length > 1){
+								calculadorDeRotas(pontosDePassagem)
+							}
+       					 });
+
+						//Insere Latitude e Longitude atual em um array de Coordenadas
+						coordenadas.push([latitude, longitude]); 
+					});
+
+					//Desenha um poligono com base nos marcadores encontrados
+					L.polygon(coordenadas, {color: 'grey'}).addTo(mapa);
+				}
+
+				function calculadorDeRotas(coordenadas){
+
+					 //Verifica se existe um container na tela
+					if(document.querySelector(".leaflet-routing-container") != null){
+						document.querySelector(".leaflet-routing-container").remove(); //Remove o container
+						route.setWaypoints([]); //zera os pontos da rota
+						coordenadas.shift(); //Destroi o primeiro elemento da Lista
+					}
+
+					route = L.Routing.control({
+						plan: L.Routing.plan(coordenadas, {
+							createMarker: function(i, wp) {
+								return L.marker(wp.latLng, {
+									draggable: true,
+									icon: L.icon.glyph({ glyph: String.fromCharCode(65 + i) })
+								});
+							},
+							routeWhileDragging: true
+						}),
+						language: 'pt-BR',
+						routeWhileDragging: true
+					})
+					.addTo(mapa);
+				}	
 
 			}, (error)=>{
 				console.log(error);
 			});
 
-		}else{
+		}else{ alert("Não foi possível capturar a sua localização"); }	
 
-			alert("Não foi possível capturar a sua localização");
-
-		}
-		
 	</script>
 
 </body>
 </html>
-
-
-<!--  
-	https://www.liedman.net/leaflet-routing-machine/
-	https://www.youtube.com/watch?v=hRoiG4ZIzeM 
-	https://www.youtube.com/watch?v=n_SNsIW42ww
--->
