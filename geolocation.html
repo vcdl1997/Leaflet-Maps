@@ -66,7 +66,7 @@
 				//Insere o motor de buscas do Leaflet
 				//let searchControl = L.esri.Geocoding.geosearch().addTo(mapa);
 
-				//Manipula o resultado das Buscas
+				//Manipula o resultado da Busca
 				//searchControl.on('results', function(data){
 					/*Marcadores de localização
 					let iconeEscola = L.icon({
@@ -83,20 +83,19 @@
 
 
 				data = [
-					{codigo_cie: "900977", cor: "#FF0000", escola: "EE ARY FONSECA", execucao: "0", latitude: "-21.714313125233", longitude: "-50.7242504629517", pi: "2006/01821", situacao: "Cancelado"},
-					{codigo_cie: "901659", cor: "#FF0000", escola: "EE PROFA MASSAKO OSAWA HIRABAYASHI", execucao: "100", latitude: "-24.5037994384766", longitude: "-47.8619995117188", pi: "1998/01152", situacao: ""},
-					{codigo_cie: "902135", cor: "#FF0000", escola: "EE CDOR BENEVIDES BERALDO", execucao: "100", latitude: "-23.7238998413086", longitude: "-46.859001159668", pi: "1999/00375", situacao: ""},
-					{codigo_cie: "291948", cor: "#FF0000", escola: "EMEF CEL JOSE VENANCIO DIAS", execucao: "100", latitude: "-20.7141502807008", longitude: "-48.5386872694244", pi: "2000/00519", situacao: ""},
-					{codigo_cie: "16901; 458697", cor: "#FF0000", escola: "EE/CEL PROFA MARIA ANGELICA BAILLOT", execucao: "100", latitude: "-23.5090007781982", longitude: "-47.6077995300293", pi: "2000/04220", situacao: ""},
-					{codigo_cie: "23589", cor: "#FF0000", escola: "EE PROF SALVADOR GOGLIANO JUNIOR", execucao: "100", latitude: "-21.1760292053223", longitude: "-48.6303100585938", pi: "2001/00927", situacao: ""},
-					{codigo_cie: "34587", cor: "#FF0000", escola: "EE JOAQUIM ABARCA", execucao: "100", latitude: "-21.9256591796875", longitude: "-50.5229301452637", pi: "2000/02979", situacao: ""},
-					{codigo_cie: "30831; 209120", cor: "#FF0000", escola: "EE/EMEFEI PROFA TAIEKA TAKAHASHI GIMENES/TEREZINHA ZANELLI", execucao: "100", latitude: "-21.853", longitude: "-51.0893", pi: "2001/00871", situacao: ""},
-					{codigo_cie: "16559; 458284", cor: "#FF0000", escola: "EE/CEL LUIZ CAMPACCI", execucao: "100", latitude: "-23.0557098388672", longitude: "-47.8367881774902", pi: "2000/03888", situacao: ""}
+					{codigo_cie: "901659", cor: "#FF0000", escola: "EE PROFA MASSAKO OSAWA HIRABAYASHI", latitude: "-24.5037994384766", longitude: "-47.8619995117188"},
+					{codigo_cie: "902135", cor: "#FF0000", escola: "EE CDOR BENEVIDES BERALDO", latitude: "-23.7238998413086", longitude: "-46.859001159668"},
+					{codigo_cie: "291948", cor: "#FF0000", escola: "EMEF CEL JOSE VENANCIO DIAS", latitude: "-20.7141502807008", longitude: "-48.5386872694244"},
+					{codigo_cie: "16901; 458697", cor: "#FF0000", escola: "EE/CEL PROFA MARIA ANGELICA BAILLOT", latitude: "-23.5090007781982", longitude: "-47.6077995300293"},
+					{codigo_cie: "23589", cor: "#FF0000", escola: "EE PROF SALVADOR GOGLIANO JUNIOR", latitude: "-21.1760292053223", longitude: "-48.6303100585938"},
+					{codigo_cie: "34587", cor: "#FF0000", escola: "EE JOAQUIM ABARCA", latitude: "-21.9256591796875", longitude: "-50.5229301452637"},
+					{codigo_cie: "30831; 209120", cor: "#FF0000", escola: "EE/EMEFEI PROFA TAIEKA TAKAHASHI GIMENES/TEREZINHA ZANELLI", latitude: "-21.853", longitude: "-51.0893"},
+					{codigo_cie: "16559; 458284", cor: "#FF0000", escola: "EE/CEL LUIZ CAMPACCI", latitude: "-23.0557098388672", longitude: "-47.8367881774902"}
 				];
 
 
 				if(data.length > 0){
-					data.forEach(({cor, longitude, latitude, execucao, pi, situacao, codigo_cie, escola})=>{
+					data.forEach(({codigo_cie, cor, escola, latitude, longitude})=>{
 
 						//Cria um icone personalizado para o marcador
 						let iconeEscola = L.icon({
@@ -109,11 +108,8 @@
 						
 						marcador.bindPopup(`
 							<div class="ml-1 text-justify">
-								<strong>Execução:  </strong> ${execucao} %
-								<br><strong>PI: </strong> ${pi}
-								<br><strong>Situação Obra(PI): </strong> ${situacao}
-								<br><strong>Código CIE: </strong> ${codigo_cie}
 								<br><strong>Escola: </strong> ${escola}
+								<br><strong>Código CIE: </strong> ${codigo_cie}
 							</div>
 						`);
 
@@ -121,19 +117,28 @@
 						marcador._icon.setAttribute('latitude', latitude);
 						marcador._icon.setAttribute('longitude', longitude);
 
-						//Evento de Clique no Marcador
-						marcador.addEventListener('click', ()=> {
+						//Eventos do Marcador
+						marcador
+							.addEventListener('click', ()=> {
 
-							//Insere a latitude e logitude da escola informada em um array de um pontos de passagem
-							pontosDePassagem.push(
-								L.latLng(marcador._icon.getAttribute('latitude'), marcador._icon.getAttribute('longitude'))
-							);
+								//Insere a latitude e logitude da escola informada em um array de um pontos de passagem
+								pontosDePassagem.push(
+									L.latLng(marcador._icon.getAttribute('latitude'), marcador._icon.getAttribute('longitude'))
+								);
 
-							//Insere apenas uma rota se houver mais de um ponto de passagem
-							if(pontosDePassagem.length > 1){
-								calculadorDeRotas(pontosDePassagem)
-							}
-       					 });
+								//Insere apenas uma rota se houver mais de um ponto de passagem
+								if(pontosDePassagem.length > 1){
+									calculadorDeRotas(pontosDePassagem)
+								}
+	       					})
+	       					.addEventListener('mouseover', ()=> {
+	       						marcador.openPopup();
+	       					})
+	       					.addEventListener('mouseout', ()=> {
+	       						marcador.closePopup();
+	       					});
+	       				;
+
 
 						//Insere Latitude e Longitude atual em um array de Coordenadas
 						coordenadas.push([latitude, longitude]); 
@@ -143,6 +148,9 @@
 					L.polygon(coordenadas, {color: 'grey'}).addTo(mapa);
 				}
 
+
+
+				//Função de Rotas
 				function calculadorDeRotas(coordenadas){
 
 					 //Verifica se existe um container na tela
